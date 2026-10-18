@@ -1,0 +1,137 @@
+"""Exercise 3: Compare sorting algorithms under different input conditions."""
+
+from random import Random
+from time import perf_counter
+
+last_name = "Manrique"
+student_id_digits = "1137"  # Numeric portion of TUPM 1137
+favorite_artist = "Laufey"
+
+id_sum = sum(int(digit) for digit in student_id_digits)
+seed_digit = int(student_id_digits[-1])
+name_length = len(last_name)
+artist_length = len(favorite_artist)
+artist_sum = sum(
+    ord(letter) - ord("A") + 1
+    for letter in favorite_artist.upper()
+    if "A" <= letter <= "Z"
+)
+
+# Generate unique student-specific order IDs, then create three orderings
+# of the same dataset for a fair algorithm comparison.
+dataset_size = 20
+first_order_id = id_sum + artist_sum + name_length + artist_length
+generated_orders = list(range(first_order_id, first_order_id + dataset_size))
+random_orders = generated_orders.copy()
+Random(id_sum * 1000 + artist_sum + seed_digit).shuffle(random_orders)
+input_conditions = {
+    "Sorted": generated_orders.copy(),
+    "Reverse": generated_orders[::-1],
+    "Random": random_orders,
+}
+
+
+def bubble_sort(values):
+    comparisons = 0
+    movements = 0
+    size = len(values)
+
+    for end in range(size - 1, 0, -1):
+        swapped = False
+        for index in range(end):
+            comparisons += 1
+            if values[index] > values[index + 1]:
+                values[index], values[index + 1] = values[index + 1], values[index]
+                movements += 3  # Two list writes and one temporary-value move.
+                swapped = True
+        if not swapped:
+            break
+
+    return comparisons, movements
+
+
+def selection_sort(values):
+    comparisons = 0
+    movements = 0
+
+    for start in range(len(values) - 1):
+        smallest = start
+        for index in range(start + 1, len(values)):
+            comparisons += 1
+            if values[index] < values[smallest]:
+                smallest = index
+
+        if smallest != start:
+            values[start], values[smallest] = values[smallest], values[start]
+            movements += 3
+
+    return comparisons, movements
+
+
+def insertion_sort(values):
+    comparisons = 0
+    movements = 0
+
+    for index in range(1, len(values)):
+        current = values[index]
+        position = index
+        while position > 0:
+            comparisons += 1
+            if values[position - 1] <= current:
+                break
+            values[position] = values[position - 1]
+            movements += 1
+            position -= 1
+
+        if position != index:
+            values[position] = current
+            movements += 1
+
+    return comparisons, movements
+
+
+algorithms = {
+    "Bubble Sort": bubble_sort,
+    "Selection Sort": selection_sort,
+    "Insertion Sort": insertion_sort,
+}
+trials = 100
+all_results = {}
+
+print(f"Student: {last_name} | ID: TUPM {student_id_digits} | Artist: {favorite_artist}")
+print(f"Generated order dataset ({dataset_size} orders): {generated_orders}")
+print(f"Trials per measurement: {trials}")
+
+for condition, original in input_conditions.items():
+    print(f"\n{condition} input: {original}")
+    all_results[condition] = {}
+
+    for algorithm_name, sort_function in algorithms.items():
+        sorted_result = None
+        comparisons = movements = 0
+        start_time = perf_counter()
+
+        for _ in range(trials):
+            values = original.copy()
+            comparisons, movements = sort_function(values)
+            sorted_result = values
+
+        average_time = (perf_counter() - start_time) / trials
+        verified = sorted_result == generated_orders
+        all_results[condition][algorithm_name] = (
+            comparisons,
+            movements,
+            average_time,
+            verified,
+        )
+        print(
+            f"{algorithm_name}: comparisons={comparisons}, "
+            f"movements={movements}, average_time={average_time:.8f}s, "
+            f"sorted={verified}"
+        )
+
+print("\nComplexity and case observations:")
+print("Bubble Sort: best O(n) with early exit; average/worst O(n^2); space O(1).")
+print("Selection Sort: best/average/worst O(n^2); space O(1).")
+print("Insertion Sort: best O(n); average/worst O(n^2); space O(1).")
+print("Movement counts use 3 per swap; insertion shifts and final placements count as writes.")

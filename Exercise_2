@@ -1,0 +1,64 @@
+"""Exercise 2: Consolidate two sorted university enrollment datasets."""
+
+last_name = "Manrique"
+student_id_digits = "1137"  # Numeric portion of TUPM 1137
+favorite_artist = "Laufey"
+
+seed_digit = int(student_id_digits[-1])
+id_sum = sum(int(digit) for digit in student_id_digits)
+name_length = len(last_name)
+artist_length = len(favorite_artist)
+
+# Dataset A uses ID_SUM as its starting value and SEED_DIGIT as its size.
+dataset_a = list(range(id_sum, id_sum + seed_digit))
+
+# Dataset B uses NAME_LENGTH as its starting value and ARTIST_LENGTH as its size.
+dataset_b = list(range(name_length, name_length + artist_length))
+
+
+def merge_sorted(first, second):
+    """Merge two ascending lists and return the merged list and comparison count."""
+    merged = []
+    first_index = 0
+    second_index = 0
+    comparisons = 0
+
+    while first_index < len(first) and second_index < len(second):
+        comparisons += 1
+        if first[first_index] <= second[second_index]:
+            merged.append(first[first_index])
+            first_index += 1
+        else:
+            merged.append(second[second_index])
+            second_index += 1
+
+    merged.extend(first[first_index:])
+    merged.extend(second[second_index:])
+    return merged, comparisons
+
+
+consolidated, comparison_count = merge_sorted(dataset_a, dataset_b)
+before_count = len(dataset_a) + len(dataset_b)
+after_count = len(consolidated)
+ordering_verified = all(
+    consolidated[index] <= consolidated[index + 1]
+    for index in range(len(consolidated) - 1)
+)
+
+print("Student: Manrique")
+print("Student ID: TUPM 1137")
+print("Favorite Artist: Laufey")
+print("SEED_DIGIT:", seed_digit)
+print("ID_SUM:", id_sum)
+print("NAME_LENGTH:", name_length)
+print("ARTIST_LENGTH:", artist_length)
+print()
+print("Department A dataset:", dataset_a)
+print("Department B dataset:", dataset_b)
+print("Consolidated dataset:", consolidated)
+print(f"Number of records before consolidation: {before_count}")
+print(f"Number of records after consolidation:  {after_count}")
+print("Comparison count:", comparison_count)
+print("Ordering verification:", "Passed" if ordering_verified else "Failed")
+print("Time complexity: O(m + n)")
+print("Space complexity: O(m + n)")

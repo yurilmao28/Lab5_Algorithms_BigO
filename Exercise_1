@@ -1,0 +1,100 @@
+# Exercise 1: Emergency Dispatch Record Search
+# Student: Manrique | Student ID: TUPM 1137 | Favorite Artist: Laufey
+
+last_name = "Manrique"
+student_id_digits = "1137"  # Numeric part of TUPM 1137
+favorite_artist = "Laufey"
+
+id_sum = sum(int(digit) for digit in student_id_digits)
+seed_digit = int(student_id_digits[-1])
+artist_sum = sum(
+    ord(letter) - ord("A") + 1
+    for letter in favorite_artist.upper()
+    if "A" <= letter <= "Z"
+)
+
+# Generate 20 unique incident records
+dataset_size = 20
+base = id_sum + artist_sum + len(last_name) + len(favorite_artist)
+original_records = list(range(base, base + dataset_size))
+
+# Generate the target using ID_SUM and ARTIST_SUM
+target_index = (id_sum + artist_sum) % dataset_size
+target_incident = original_records[target_index]
+
+# Rotate the records by SEED_DIGIT positions
+rotation = seed_digit % dataset_size
+rotated_records = original_records[rotation:] + original_records[:rotation]
+
+
+def linear_search(records, target):
+    comparisons = 0
+
+    for index, record in enumerate(records):
+        comparisons += 1
+        if record == target:
+            return index, comparisons
+
+    return -1, comparisons
+
+
+def rotated_binary_search(records, target):
+    low = 0
+    high = len(records) - 1
+    comparisons = 0
+
+    while low <= high:
+        middle = (low + high) // 2
+
+        comparisons += 1
+        if records[middle] == target:
+            return middle, comparisons
+
+        comparisons += 1
+        if records[low] <= records[middle]:
+            comparisons += 1
+            target_in_left = records[low] <= target
+
+            if target_in_left:
+                comparisons += 1
+                target_in_left = target < records[middle]
+
+            if target_in_left:
+                high = middle - 1
+            else:
+                low = middle + 1
+        else:
+            comparisons += 1
+            target_in_right = records[middle] < target
+
+            if target_in_right:
+                comparisons += 1
+                target_in_right = target <= records[high]
+
+            if target_in_right:
+                low = middle + 1
+            else:
+                high = middle - 1
+
+    return -1, comparisons
+
+
+linear_position, linear_comparisons = linear_search(
+    rotated_records, target_incident
+)
+binary_position, binary_comparisons = rotated_binary_search(
+    rotated_records, target_incident
+)
+
+print("ID sum:", id_sum)
+print("Seed digit:", seed_digit)
+print("Artist sum:", artist_sum)
+print("Original records:", original_records)
+print("Rotated records:", rotated_records)
+print("Target incident:", target_incident)
+print("Position (1-based):", binary_position + 1 if binary_position != -1 else "Not found")
+print("Linear Search comparisons:", linear_comparisons)
+print("Binary Search comparisons:", binary_comparisons)
+print("Linear Search time complexity: O(n)")
+print("Rotated Binary Search time complexity: O(log n)")
+print("Auxiliary space: O(1)")
